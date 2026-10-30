@@ -1,0 +1,78 @@
+* {
+     box-sizing: border-box;
+}
+
+body {
+     margin: 0;
+     font-family: Arial, sans-serif;
+     background: #f3f4f6;
+     color: #222;
+}
+
+nav {
+     background: #263b80;
+     color: white;
+     padding: 18px 8%;
+     display: flex;
+     align-items: center;
+     gap: 25px;
+}
+
+nav h2 {
+     margin-right: auto;
+}
+
+nav a {
+     color: white;
+     text-decoration: none;
+}
+
+.container {
+     max-width: 800px;
+     margin: 35px auto;
+     padding: 25px;
+}
+
+.post-card {
+     background: white;
+     padding: 20px;
+     margin: 20px 0;
+     border-radius: 10px;
+     box-shadow: 0 2px 8px #00000015;
+}
+
+textarea {
+     display: block;
+     width: 100%;
+     padding: 12px;
+     margin: 12px 0;
+     border: 1px solid #ccc;
+     border-radius: 6px;
+     font-family: Arial, sans-serif;
+}
+
+button,
+.button {
+     background: #263b80;
+     color: white;
+     border: none;
+     padding: 12px 20px;
+     border-radius: 6px;
+     cursor: pointer;
+     text-decoration: none;
+}
+
+.message {
+     padding: 12px;
+     margin: 10px auto;
+     max-width: 800px;
+     border-radius: 5px;
+}
+
+.success {
+     background: #d1fae5;
+}
+
+.error {
+     background: #fee2e2;
+}

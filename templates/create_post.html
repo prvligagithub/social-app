@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+     <h1>Create a Post</h1>
+
+     <form method="POST" action="{{ url_for('create_post') }}">
+
+          <label for="content">What's on your mind?</label>
+
+          <textarea id="content" name="content" rows="5" placeholder="Write your post here..." required></textarea>
+
+          <button type="submit">Share Post</button>
+
+     </form>
+
+     <br>
+
+     <a href="{{ url_for('index') }}">Back to Home</a>
+
+</div>
+
+{% endblock %}
