@@ -6,7 +6,7 @@
 
      <h1>Welcome to Social App</h1>
 
-     <p>Share your thoughts with everyone!</p>
+     <p>Share your thoughts and react to posts!</p>
 
      <a href="{{ url_for('create_post') }}" class="button">
           Create New Post
@@ -25,6 +25,16 @@
           <p>{{ post.content }}</p>
 
           <small>Posted on: {{ post.created_at }}</small>
+
+          <p><strong>❤️ {{ post.like_count }} Likes</strong></p>
+
+          <form method="POST" action="{{ url_for('like_post', post_id=post.id) }}">
+
+               <input type="text" name="liker_name" placeholder="Enter your name" required>
+
+               <button type="submit">❤️ Like</button>
+
+          </form>
 
      </div>
 

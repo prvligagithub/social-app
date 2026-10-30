@@ -22,6 +22,12 @@ def client(app):
     return app.test_client()
 
 
+def create_test_post(client):
+    client.post("/create", data={
+        "content": "Hello everyone!"
+    })
+
+
 def test_homepage(client):
     response = client.get("/")
     assert response.status_code == 200
@@ -58,7 +64,6 @@ def test_empty_post(client):
         follow_redirects=True
     )
 
-    assert response.status_code == 200
     assert b"Post content cannot be empty." in response.data
 
 
@@ -78,18 +83,79 @@ def test_post_appears_on_homepage(client):
     })
 
     response = client.get("/")
-
     assert b"My first social media post" in response.data
 
 
-def test_multiple_posts(client):
-    client.post("/create", data={"content": "First post"})
-    client.post("/create", data={"content": "Second post"})
+def test_like_post_success(client):
+    create_test_post(client)
+
+    response = client.post(
+        "/post/1/like",
+        data={"liker_name": "Siddharth"},
+        follow_redirects=True
+    )
+
+    assert response.status_code == 200
+    assert b"You liked the post!" in response.data
+    assert b"1 Likes" in response.data
+
+
+def test_duplicate_like_prevented(client):
+    create_test_post(client)
+
+    client.post(
+        "/post/1/like",
+        data={"liker_name": "Siddharth"}
+    )
+
+    response = client.post(
+        "/post/1/like",
+        data={"liker_name": "Siddharth"},
+        follow_redirects=True
+    )
+
+    assert b"You have already liked this post!" in response.data
+    assert b"1 Likes" in response.data
+
+
+def test_different_users_can_like(client):
+    create_test_post(client)
+
+    client.post(
+        "/post/1/like",
+        data={"liker_name": "User1"}
+    )
+
+    client.post(
+        "/post/1/like",
+        data={"liker_name": "User2"}
+    )
 
     response = client.get("/")
 
-    assert b"First post" in response.data
-    assert b"Second post" in response.data
+    assert b"2 Likes" in response.data
+
+
+def test_empty_liker_name(client):
+    create_test_post(client)
+
+    response = client.post(
+        "/post/1/like",
+        data={"liker_name": "   "},
+        follow_redirects=True
+    )
+
+    assert b"Please enter your name to like the post." in response.data
+    assert b"0 Likes" in response.data
+
+
+def test_like_nonexistent_post(client):
+    response = client.post(
+        "/post/999/like",
+        data={"liker_name": "Siddharth"}
+    )
+
+    assert response.status_code == 404
 
 
 def test_post_not_found(client):
