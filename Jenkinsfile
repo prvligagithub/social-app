@@ -18,8 +18,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/prvligagithub/social-app.git'
+                checkout scm
             }
         }
 
@@ -49,8 +48,8 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     bat '''
-                        echo %DOCKER_PASS% | "%DOCKER_EXE%" login -u %DOCKER_USER% --password-stdin
-                        if errorlevel 1 exit /b 1
+                    @echo off
+                    echo %DOCKER_PASS%| "%DOCKER_EXE%" login -u %DOCKER_USER% --password-stdin
                     '''
                 }
             }
@@ -65,11 +64,11 @@ pipeline {
 
     post {
         success {
-            echo 'Social App V1 successfully built and pushed!'
+            echo 'Social App V1 successfully pushed to Docker Hub!'
         }
 
         failure {
-            echo 'Pipeline failed. Check Console Output.'
+            echo 'Social App V1 pipeline failed. Check Console Output.'
         }
     }
 }
