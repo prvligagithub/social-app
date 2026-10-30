@@ -49,22 +49,62 @@ def create_app(test_config=None):
             )
         """)
 
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                commenter_name TEXT NOT NULL,
+                comment_text TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+            )
+        """)
+
         db.commit()
 
     with app.app_context():
         init_db()
 
+    def get_posts(post_id=None):
+        db = get_db()
+
+        if post_id is None:
+            rows = db.execute("""
+                SELECT posts.*,
+                       COUNT(DISTINCT likes.id) AS like_count
+                FROM posts
+                LEFT JOIN likes ON posts.id = likes.post_id
+                GROUP BY posts.id
+                ORDER BY posts.id DESC
+            """).fetchall()
+        else:
+            rows = db.execute("""
+                SELECT posts.*,
+                       COUNT(DISTINCT likes.id) AS like_count
+                FROM posts
+                LEFT JOIN likes ON posts.id = likes.post_id
+                WHERE posts.id = ?
+                GROUP BY posts.id
+            """, (post_id,)).fetchall()
+
+        posts = []
+
+        for row in rows:
+            post = dict(row)
+
+            post["comments"] = db.execute("""
+                SELECT * FROM comments
+                WHERE post_id = ?
+                ORDER BY id DESC
+            """, (post["id"],)).fetchall()
+
+            posts.append(post)
+
+        return posts
+
     @app.route("/")
     def index():
-        posts = get_db().execute("""
-            SELECT posts.*,
-                   COUNT(likes.id) AS like_count
-            FROM posts
-            LEFT JOIN likes ON posts.id = likes.post_id
-            GROUP BY posts.id
-            ORDER BY posts.id DESC
-        """).fetchall()
-
+        posts = get_posts()
         return render_template("index.html", posts=posts)
 
     @app.route("/create", methods=["GET", "POST"])
@@ -119,21 +159,43 @@ def create_app(test_config=None):
 
         return redirect(url_for("index"))
 
-    @app.route("/post/<int:post_id>")
-    def post_detail(post_id):
-        post = get_db().execute("""
-            SELECT posts.*,
-                   COUNT(likes.id) AS like_count
-            FROM posts
-            LEFT JOIN likes ON posts.id = likes.post_id
-            WHERE posts.id = ?
-            GROUP BY posts.id
-        """, (post_id,)).fetchone()
+    @app.route("/post/<int:post_id>/comment", methods=["POST"])
+    def add_comment(post_id):
+        db = get_db()
+
+        post = db.execute(
+            "SELECT id FROM posts WHERE id = ?",
+            (post_id,)
+        ).fetchone()
 
         if post is None:
             return "Post not found", 404
 
-        return render_template("index.html", posts=[post])
+        commenter_name = request.form.get("commenter_name", "").strip()
+        comment_text = request.form.get("comment_text", "").strip()
+
+        if not commenter_name or not comment_text:
+            flash("Please enter your name and comment.", "error")
+            return redirect(url_for("index"))
+
+        db.execute("""
+            INSERT INTO comments (post_id, commenter_name, comment_text)
+            VALUES (?, ?, ?)
+        """, (post_id, commenter_name, comment_text))
+
+        db.commit()
+
+        flash("Comment added successfully!", "success")
+        return redirect(url_for("index"))
+
+    @app.route("/post/<int:post_id>")
+    def post_detail(post_id):
+        posts = get_posts(post_id)
+
+        if not posts:
+            return "Post not found", 404
+
+        return render_template("index.html", posts=posts)
 
     return app
 

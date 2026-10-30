@@ -76,3 +76,24 @@ button,
 .error {
      background: #fee2e2;
 }
+
+.comment-card {
+     background: #f3f4f6;
+     padding: 12px;
+     margin: 12px 0;
+     border-radius: 6px;
+}
+
+.comment-card p {
+     margin: 8px 0;
+}
+
+.post-card hr {
+     border: 0;
+     border-top: 1px solid #ddd;
+     margin: 20px 0;
+}
+
+.post-card form {
+     margin-top: 12px;
+}

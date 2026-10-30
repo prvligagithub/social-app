@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "24mis0392/social-app:v2"
+        IMAGE_NAME = "24mis0392/social-app:v3"
 
         PYTHON_EXE = "C:\\Users\\siddh\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe"
 

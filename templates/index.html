@@ -6,7 +6,7 @@
 
      <h1>Welcome to Social App</h1>
 
-     <p>Share your thoughts and react to posts!</p>
+     <p>Share your thoughts, react and comment!</p>
 
      <a href="{{ url_for('create_post') }}" class="button">
           Create New Post
@@ -33,6 +33,38 @@
                <input type="text" name="liker_name" placeholder="Enter your name" required>
 
                <button type="submit">❤️ Like</button>
+
+          </form>
+
+          <hr>
+
+          <h3>Comments</h3>
+
+          {% if post.comments %}
+
+          {% for comment in post.comments %}
+
+          <div class="comment-card">
+               <strong>{{ comment.commenter_name }}</strong>
+               <p>{{ comment.comment_text }}</p>
+               <small>{{ comment.created_at }}</small>
+          </div>
+
+          {% endfor %}
+
+          {% else %}
+
+          <p>No comments yet. Be the first to comment!</p>
+
+          {% endif %}
+
+          <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}">
+
+               <input type="text" name="commenter_name" placeholder="Enter your name" required>
+
+               <textarea name="comment_text" rows="3" placeholder="Write your comment..." required></textarea>
+
+               <button type="submit">Add Comment</button>
 
           </form>
 

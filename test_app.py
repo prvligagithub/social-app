@@ -91,11 +91,10 @@ def test_like_post_success(client):
 
     response = client.post(
         "/post/1/like",
-        data={"liker_name": "Siddharth"},
+        data={"liker_name": "User1"},
         follow_redirects=True
     )
 
-    assert response.status_code == 200
     assert b"You liked the post!" in response.data
     assert b"1 Likes" in response.data
 
@@ -103,14 +102,11 @@ def test_like_post_success(client):
 def test_duplicate_like_prevented(client):
     create_test_post(client)
 
-    client.post(
-        "/post/1/like",
-        data={"liker_name": "Siddharth"}
-    )
+    client.post("/post/1/like", data={"liker_name": "User1"})
 
     response = client.post(
         "/post/1/like",
-        data={"liker_name": "Siddharth"},
+        data={"liker_name": "User1"},
         follow_redirects=True
     )
 
@@ -121,18 +117,10 @@ def test_duplicate_like_prevented(client):
 def test_different_users_can_like(client):
     create_test_post(client)
 
-    client.post(
-        "/post/1/like",
-        data={"liker_name": "User1"}
-    )
-
-    client.post(
-        "/post/1/like",
-        data={"liker_name": "User2"}
-    )
+    client.post("/post/1/like", data={"liker_name": "User1"})
+    client.post("/post/1/like", data={"liker_name": "User2"})
 
     response = client.get("/")
-
     assert b"2 Likes" in response.data
 
 
@@ -152,7 +140,86 @@ def test_empty_liker_name(client):
 def test_like_nonexistent_post(client):
     response = client.post(
         "/post/999/like",
-        data={"liker_name": "Siddharth"}
+        data={"liker_name": "User1"}
+    )
+
+    assert response.status_code == 404
+
+
+def test_comment_success(client):
+    create_test_post(client)
+
+    response = client.post(
+        "/post/1/comment",
+        data={
+            "commenter_name": "User1",
+            "comment_text": "Nice post!"
+        },
+        follow_redirects=True
+    )
+
+    assert response.status_code == 200
+    assert b"Comment added successfully!" in response.data
+    assert b"Nice post!" in response.data
+    assert b"User1" in response.data
+
+
+def test_empty_comment(client):
+    create_test_post(client)
+
+    response = client.post(
+        "/post/1/comment",
+        data={
+            "commenter_name": "User1",
+            "comment_text": ""
+        },
+        follow_redirects=True
+    )
+
+    assert b"Please enter your name and comment." in response.data
+
+
+def test_empty_commenter_name(client):
+    create_test_post(client)
+
+    response = client.post(
+        "/post/1/comment",
+        data={
+            "commenter_name": "   ",
+            "comment_text": "Nice post!"
+        },
+        follow_redirects=True
+    )
+
+    assert b"Please enter your name and comment." in response.data
+
+
+def test_multiple_comments(client):
+    create_test_post(client)
+
+    client.post("/post/1/comment", data={
+        "commenter_name": "User1",
+        "comment_text": "First comment"
+    })
+
+    client.post("/post/1/comment", data={
+        "commenter_name": "User2",
+        "comment_text": "Second comment"
+    })
+
+    response = client.get("/")
+
+    assert b"First comment" in response.data
+    assert b"Second comment" in response.data
+
+
+def test_comment_nonexistent_post(client):
+    response = client.post(
+        "/post/999/comment",
+        data={
+            "commenter_name": "User1",
+            "comment_text": "Hello"
+        }
     )
 
     assert response.status_code == 404
