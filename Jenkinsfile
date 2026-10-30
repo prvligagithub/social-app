@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         IMAGE_NAME = "24mis0392/social-app:v1"
 
@@ -11,6 +15,13 @@ pipeline {
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/prvligagithub/social-app.git'
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
@@ -30,7 +41,7 @@ pipeline {
             }
         }
 
-        stage('Docker Hub Login and Push') {
+        stage('Docker Hub Login') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'social-dockerhub-credentials',
@@ -39,21 +50,26 @@ pipeline {
                 )]) {
                     bat '''
                         echo %DOCKER_PASS% | "%DOCKER_EXE%" login -u %DOCKER_USER% --password-stdin
-                        "%DOCKER_EXE%" push %IMAGE_NAME%
-                        "%DOCKER_EXE%" logout
+                        if errorlevel 1 exit /b 1
                     '''
                 }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                bat '"%DOCKER_EXE%" push %IMAGE_NAME%'
             }
         }
     }
 
     post {
         success {
-            echo 'Social App V1 pipeline completed successfully!'
+            echo 'Social App V1 successfully built and pushed!'
         }
 
         failure {
-            echo 'Social App V1 pipeline failed. Check the console output.'
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
